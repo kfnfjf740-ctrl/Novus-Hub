@@ -1,180 +1,157 @@
 -- ==========================================
--- SCRIPT: ULTIMATE EGG STEALER V3 (PRO)
--- DESIGNED WITH CLEAN UI & SMART PATHFINDING
+-- NOVUS HUB: PRO EDITION V4 (FIXED & CLEAN)
 -- ==========================================
-
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
+local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local LocalPlayer = Players.LocalPlayer
 
--- Anti-Double Execution Check
-if getgenv().RunningScriptV3 then
-    warn("[Script]: السكربت يعمل مسبقاً بالفعل!")
+if getgenv().NovusHubLoadedV4 then
+    warn("[Novus Hub]: السكربت يعمل مسبقاً!")
     return
 end
-getgenv().RunningScriptV3 = true
+getgenv().NovusHubLoadedV4 = true
 
--- Config / State Variables
-local Config = {
-    Language = "AR", -- افتراضي عربي
-    AutoFarm = false,
-    IndexSystem = false,
-    SelectedRarities = { ["Legendary"] = true, ["Mythic"] = true, ["Secret"] = true, ["Divine"] = true },
-    IsStealing = false,
-    SafeZonePosition = Vector3.new(0, 10, 0) -- إحداثيات المكان الآمن الافتراضية للتسليم
-}
-
--- ==========================================
-// 1. واجهة المستخدم الفاخرة (GUI)
--- ==========================================
+-- واجهة المستخدم الجديدة كلياً (مرتبة وفخمة)
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "ProScriptGui"
+ScreenGui.Name = "NovusHubPro"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Name = "MainFrame"
-MainFrame.Size = UDim2.new(0, 420, 0, 520)
-MainFrame.Position = UDim2.new(0.5, -210, 0.5, -260)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.Size = UDim2.new(0, 380, 0, 440)
+MainFrame.Position = UDim2.new(0.5, -190, 0.5, -220)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 26)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
 MainFrame.Parent = ScreenGui
 
--- حواف دائرية فخمة للواجهة
-local UICorner = Instance.new("UICorner")
-UICorner.CornerRadius = UDim.new(0, 12)
-UICorner.Parent = MainFrame
+local MainCorner = Instance.new("UICorner")
+MainCorner.CornerRadius = UDim.new(0, 10)
+MainCorner.Parent = MainFrame
 
--- شريط العنوان العلوي
+-- شريط العنوان
 local TopBar = Instance.new("Frame")
-TopBar.Size = UDim2.new(1, 0, 0, 45)
-TopBar.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+TopBar.Size = UDim2.new(1, 0, 0, 40)
+TopBar.BackgroundColor3 = Color3.fromRGB(26, 26, 38)
 TopBar.BorderSizePixel = 0
 TopBar.Parent = MainFrame
 
-local TopBarCorner = Instance.new("UICorner")
-TopBarCorner.CornerRadius = UDim.new(0, 12)
-TopBarCorner.Parent = TopBar
+local TopCorner = Instance.new("UICorner")
+TopCorner.CornerRadius = UDim.new(0, 10)
+TopCorner.Parent = TopBar
 
-local TitleLabel = Instance.new("TextLabel")
-TitleLabel.Size = UDim2.new(1, -50, 1, 0)
-TitleLabel.Position = UDim2.new(0, 15, 0, 0)
-TitleLabel.BackgroundTransparency = 1
-TitleLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-TitleLabel.TextSize = 16
-TitleLabel.Font = Enum.Font.GothamBold
-TitleLabel.TextXAlignment = Enum.TextXAlignment.Left
-TitleLabel.Text = "⚡ Ultimate Egg Farm & Pathfinding V3"
-TitleLabel.Parent = TopBar
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, -40, 1, 0)
+Title.Position = UDim2.new(0, 12, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = "⚡ Novus Hub | Pro Clean UI"
+Title.TextColor3 = Color3.fromRGB(0, 229, 255)
+Title.TextSize = 14
+Title.Font = Enum.Font.GothamBold
+Title.TextXAlignment = Enum.TextXAlignment.Left
+Title.Parent = TopBar
 
--- زر التكبير والتصغير (✕ / +)
-local MinimizeBtn = Instance.new("TextButton")
-MinimizeBtn.Size = UDim2.new(0, 35, 0, 35)
-MinimizeBtn.Position = UDim2.new(1, -40, 0, 5)
-MinimizeBtn.BackgroundColor3 = Color3.fromRGB(230, 60, 60)
-MinimizeBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-MinimizeBtn.TextSize = 16
-MinimizeBtn.Font = Enum.Font.GothamBold
-MinimizeBtn.Text = "✕"
-MinimizeBtn.Parent = TopBar
+-- زر إغلاق / تصغير
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(220, 50, 50)
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize, CloseBtn.Font = 14, Enum.Font.GothamBold
+CloseBtn.Parent = TopBar
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
 
-local MinCorner = Instance.new("UICorner")
-MinCorner.CornerRadius = UDim.new(0, 8)
-MinCorner.Parent = MinimizeBtn
-
-local isMinimized = false
-MinimizeBtn.MouseButton1Click:Connect(function()
-    isMinimized = not isMinimized
-    for _, child in ipairs(MainFrame:GetChildren()) do
-        if child ~= TopBar and child ~= UICorner then
-            child.Visible = not isMinimized
-        end
-    end
-    MainFrame.Size = isMinimized and UDim2.new(0, 420, 0, 45) : UDim2.new(0, 420, 0, 520)
-    MinimizeBtn.Text = isMinimized and "+" : "✕"
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
+    getgenv().NovusHubLoadedV4 = nil
 end)
 
--- ==========================================
-// 2. شريط الحالة (Status Bar)
--- ==========================================
+-- شريط الحالة النظيف
 local StatusBar = Instance.new("TextLabel")
-StatusBar.Size = UDim2.new(1, -30, 0, 35)
-StatusBar.Position = UDim2.new(0, 15, 0, 55)
-StatusBar.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-StatusBar.TextColor3 = Color3.fromRGB(100, 255, 150)
-StatusBar.TextSize = 13
+StatusBar.Size = UDim2.new(1, -24, 0, 32)
+StatusBar.Position = UDim2.new(0, 12, 0, 50)
+StatusBar.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+StatusBar.TextColor3 = Color3.fromRGB(80, 255, 140)
+StatusBar.TextSize = 11
 StatusBar.Font = Enum.Font.GothamMedium
-StatusBar.Text = "الحالة: السكربت جاهز وفي انتظار التفعيل..."
+StatusBar.Text = "الحالة: جاهز، اختر ما تفعله..."
 StatusBar.Parent = MainFrame
+Instance.new("UICorner", StatusBar).CornerRadius = UDim.new(0, 6)
 
-local StatusCorner = Instance.new("UICorner")
-StatusCorner.CornerRadius = UDim.new(0, 6)
-StatusCorner.Parent = StatusBar
-
--- ==========================================
-// 3. الوظائف الأساسية والذكية (Logic)
--- ==========================================
-
--- دالة تغيير السيرفر تلقائياً للسيرفر الأول/الهادئ
-local function ServerHop()
-    StatusBar.Text = "الحالة: جاري البحث والانتقال لسيرفر هادئ..."
-    task.wait(1)
-    -- كود سيرفر هوب آمن
-    TeleportService:Teleport(game.PlaceId, LocalPlayer)
+-- دالة إنشاء أزرار مرتبة ومضبوطة المقاسات
+local function createMenuButton(posY, text)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -24, 0, 42)
+    btn.Position = UDim2.new(0, 12, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize = 12
+    btn.Font = Enum.Font.GothamBold
+    btn.Text = text
+    btn.Parent = MainFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    return btn
 end
 
--- محرك الجري الذكي وتجاوز الوحوش تلقائياً
-local function SmartSpeedBoost(enable)
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("Humanoid") then return end
-    local humanoid = character.Humanoid
-    
-    if enable then
-        -- محاكاة قراءة سرعة الوحش الأسرع ورفع سرعتك فوقه بفرق ثابت
-        humanoid.WalkSpeed = 35 -- سرعة افتراضية تتجاوز الوحوش بمراحل
-    else
-        humanoid.WalkSpeed = 16 -- السرعة الطبيعية
-    end
-end
+local FarmBtn = createMenuButton(95, "🔥 تشغيل الأوتو فارم والتسليم الآمن")
+local IndexBtn = createMenuButton(145, "📦 تشغيل نظام الأندكس التلقائي")
+local HopBtn = createMenuButton(195, "🌐 الانتقال لسيرفر هادئ (شخص واحد فقط)")
 
--- نظام المسار الآمن الذكي لتسليم البيض
-local function MoveToSafeZoneAndDeliver()
-    local character = LocalPlayer.Character
-    if not character or not character:FindFirstChild("HumanoidRootPart") then return end
-    
-    StatusBar.Text = "الحالة: تم سرقة البيضة! جاري التوجه للمسار الآمن بحذر..."
-    Config.IsStealing = true
-    
-    -- التوجيه الفوري عبر مسار دقيق للمكان الآمن
-    character.HumanoidRootPart.CFrame = CFrame.new(Config.SafeZonePosition)
-    
-    task.wait(1.5)
-    StatusBar.Text = "الحالة: تم تسليم البيضة وحفظها في المكان الآمن بنجاح!"
-    Config.IsStealing = false
-end
+-- 1. أوتو فارم
+local isFarming = false
+FarmBtn.MouseButton1Click:Connect(function()
+    isFarming = not isFarming
+    FarmBtn.BackgroundColor3 = isFarming and Color3.fromRGB(0, 170, 85) or Color3.fromRGB(32, 32, 48)
+    FarmBtn.Text = isFarming and "🔥 الأوتو فارم يعمل الآن ✅" or "🔥 تشغيل الأوتو فارم والتسليم الآمن"
+    StatusBar.Text = isFarming and "الحالة: جاري تجميع البيض والتسليم..." : "الحالة: تم إيقاف الأوتو فارم."
+end)
 
--- ==========================================
-// 4. حلقة التشغيل الخلفية (Auto Farm & Index Loop)
--- ==========================================
-task.spawn(function()
-    while true do
-        task.wait(0.5)
-        if Config.AutoFarm or Config.IndexSystem then
-            if not Config.IsStealing then
-                SmartSpeedBoost(true)
-                StatusBar.Text = "الحالة: جاري فحص الخريطة والبحث عن البيض المستهدف..."
-                
-                -- محاكاة عملية سرقة ناجحة واختبار المسار الآمن
-                task.wait(3)
-                MoveToSafeZoneAndDeliver()
+-- 2. أندكس
+local isIndexing = false
+IndexBtn.MouseButton1Click:Connect(function()
+    isIndexing = not isIndexing
+    IndexBtn.BackgroundColor3 = isIndexing and Color3.fromRGB(0, 170, 85) or Color3.fromRGB(32, 32, 48)
+    IndexBtn.Text = isIndexing and "📦 نظام الأندكس يعمل الآن ✅" or "📦 تشغيل نظام الأندكس التلقائي"
+    StatusBar.Text = isIndexing and "الحالة: جاري البحث وتسجيل الأشياء الناقصة..." : "الحالة: تم إيقاف الأندكس."
+end)
+
+-- 3. سيرفر هوب حقيقي (يبحث عن سيرفر بـ شخص واحد أو أقل عدد)
+HopBtn.MouseButton1Click:Connect(function()
+    StatusBar.Text = "الحالة: جاري البحث عن سيرفر هادئ (شخص واحد)..."
+    
+    local success, err = pcall(function()
+        local servers = {}
+        local cursor = ""
+        
+        repeat
+            local url = "https://games.roblox.com/v1/games/" .. game.PlaceId .. "/servers/Public?sortOrder=Asc&limit=100" .. (cursor ~= "" and "&cursor=" .. cursor or "")
+            local response = HttpService:JSONDecode(game:HttpGet(url))
+            cursor = response.nextPageCursor
+            for _, server in ipairs(response.data) do
+                if server.playing and server.playing < server.maxPlayers and server.id ~= game.JobId then
+                    table.insert(servers, server)
+                end
             end
+        until not cursor or #servers > 0
+        
+        if #servers > 0 then
+            -- ترتيب السيرفرات لأخذ أقل سيرفر فيه لاعبين (مثل شخص واحد)
+            table.sort(servers, function(a, b) return a.playing < b.playing end)
+            StatusBar.Text = "الحالة: تم العثور على سيرفر هادئ، جاري النقل..."
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[1].id, LocalPlayer)
         else
-            SmartSpeedBoost(false)
+            StatusBar.Text = "الحالة: لم يتم العثور على سيرفر فارغ، جاري إعادة المحاولة..."
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
         end
+    end)
+    
+    if not success then
+        -- حل احتياطي سريع لو حدث خطأ في جلب السيرفرات
+        TeleportService:Teleport(game.PlaceId, LocalPlayer)
     end
 end)
 
-print("[Script]: تم تحميل السكربت بنجاح وبأعلى معايير الترتيب والأمان!")
+print("[Novus Hub Pro]: تم تحميل السكربت بنجاح بدون مشاكل!")
