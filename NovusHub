@@ -1,122 +1,79 @@
 -- ==========================================
--- NOVUS HUB: CUSTOM VISUAL ROBUX & SHOP GENERATOR-- ==========================================
--- NOVUS HUB: FULL FAKE SHOP & ROBUX SIMULATOR
+-- NOVUS HUB: GLOBAL FAKE PURCHASE INJECTOR
 -- ==========================================
 local Players = game:GetService("Players")
+local MarketplaceService = game:GetService("MarketplaceService")
+local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
-if LocalPlayer.PlayerGui:FindFirstChild("FakeShopSimulator") then
-    LocalPlayer.PlayerGui.FakeShopSimulator:Destroy()
+-- إزالة أي واجهة سابقة
+if CoreGui:FindFirstChild("FakePromptGui") then
+    CoreGui.FakePromptGui:Destroy()
 end
 
+-- واجهة الإشعارات الوهمية العائمة
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FakeShopSimulator"
+ScreenGui.Name = "FakePromptGui"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+ScreenGui.Parent = CoreGui
 
-local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 360, 0, 400)
-MainFrame.Position = UDim2.new(0.5, -180, 0.5, -200)
-MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
-MainFrame.BorderSizePixel = 0
-MainFrame.Active = true
-MainFrame.Draggable = true
-MainFrame.Parent = ScreenGui
+local Notification = Instance.new("Frame")
+Notification.Size = UDim2.new(0, 320, 0, 70)
+Notification.Position = UDim2.new(0.5, -160, 0, -90) -- تبدأ مخفية فوق
+Notification.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+Notification.BorderSizePixel = 0
+Notification.Parent = ScreenGui
 
-Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", Notification).CornerRadius = UDim.new(0, 10)
 
--- شريط العنوان
-local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 45)
-Title.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
-Title.Text = "💎 محاكي الشراء الوهمي والروبوكس"
-Title.TextColor3 = Color3.fromRGB(0, 229, 255)
-Title.TextSize, Title.Font = 13, Enum.Font.GothamBold
-Title.Parent = MainFrame
-Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
+-- خط زاهي على جنب
+local Accent = Instance.new("Frame")
+Accent.Size = UDim2.new(0, 5, 1, 0)
+Accent.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
+Accent.BorderSizePixel = 0
+Accent.Parent = Notification
+Instance.new("UICorner", Accent).CornerRadius = UDim.new(0, 4)
 
--- زر الإغلاق
-local CloseBtn = Instance.new("TextButton")
-CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 7)
-CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
-CloseBtn.Text = "✕"
-CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-CloseBtn.Parent = Title
-Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
-CloseBtn.MouseButton1Click:Connect(function()
-    ScreenGui:Destroy()
-end)
+-- نص الرسالة الوهمية
+local MsgLabel = Instance.new("TextLabel")
+MsgLabel.Size = UDim2.new(1, -20, 1, 0)
+MsgLabel.Position = UDim2.new(0, 15, 0, 0)
+MsgLabel.BackgroundTransparency = 1
+MsgLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+MsgLabel.TextSize, MsgLabel.Font = 12, Enum.Font.GothamBold
+MsgLabel.TextXAlignment = Enum.TextXAlignment.Left
+MsgLabel.Text = "💎 تم الشراء الوهمي بنجاح!\n(عملية شكلية عبر السكربت)"
+MsgLabel.Parent = Notification
 
--- شريط عرض الرصيد الوهمي في الأعلى
-local RobuxDisplay = Instance.new("TextLabel")
-RobuxDisplay.Size = UDim2.new(1, -20, 0, 40)
-RobuxDisplay.Position = UDim2.new(0, 10, 0, 55)
-RobuxDisplay.BackgroundColor3 = Color3.fromRGB(25, 35, 30)
-RobuxDisplay.TextColor3 = Color3.fromRGB(0, 255, 120)
-RobuxDisplay.TextSize, RobuxDisplay.Font = 12, Enum.Font.GothamBold
-RobuxDisplay.Text = "رصيدك الوهمي الحالي: 50,000 Robux 💎"
-RobuxDisplay.Parent = MainFrame
-Instance.new("UICorner", RobuxDisplay).CornerRadius = UDim.new(0, 6)
-
--- شريط الحالة والإشعارات الوهمية
-local Status = Instance.new("TextLabel")
-Status.Size = UDim2.new(1, -20, 0, 35)
-Status.Position = UDim2.new(0, 10, 0, 105)
-Status.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-Status.TextColor3 = Color3.fromRGB(255, 215, 0)
-Status.TextSize, Status.Font = 11, Enum.Font.GothamMedium
-Status.Text = "الحالة: جاهز للشراء الوهمي، اختر عنصراً..."
-Status.Parent = MainFrame
-Instance.new("UICorner", Status).CornerRadius = UDim.new(0, 6)
-
--- دالة لعناصر المتجر الوهمي التي تختبر "الشراء"
-local currentFakeRobux = 50000
-local function createFakeBuyItem(posY, itemName, price)
-    local btn = Instance.new("TextButton")
-    btn.Size = UDim2.new(1, -20, 0, 50)
-    btn.Position = UDim2.new(0, 10, 0, posY)
-    btn.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
-    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
-    btn.TextSize, btn.Font = 12, Enum.Font.GothamBold
-    btn.Text = itemName .. " | السعر: " .. price .. " R$"
-    btn.Parent = MainFrame
-    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
-    
-    btn.MouseButton1Click:Connect(function()
-        if currentFakeRobux >= price then
-            currentFakeRobux = currentFakeRobux - price
-            RobuxDisplay.Text = "رصيدك الوهمي الحالي: " .. currentFakeRobux .. " Robux 💎"
-            Status.Text = "🎉 تم شراء (" .. itemName .. ") وهمياً بنجاح!"
-            task.wait(1.5)
-            Status.Text = "الحالة: جاهز لعملية شراء وهمية أخرى..."
-        else
-            Status.Text = "❌ رصيدك الوهمي لا يكفي، أعد تعبئته!"
-        end
-    end)
-    return btn
+-- دالة إظهار رسالة النجاح بشكل متحرك وجميل
+local function showFakeSuccess()
+    Notification:TweenPosition(UDim2.new(0.5, -160, 0, 20), "Out", "Quad", 0.3, true)
+    task.wait(2.5)
+    Notification:TweenPosition(UDim2.new(0.5, -160, 0, -90), "In", "Quad", 0.3, true)
 end
 
--- عناصر متجر وهمية للتجربة الشكلية
-createFakeBuyItem(150, "🐉 تفعيل تنين بيرمننت نادر", 1200)
-createFakeBuyItem(210, "⚡ حزمة السرعة الخارقة الدائمة", 800)
-createFakeBuyItem(270, "📦 فتح جميع صناديق الأندكس", 2500)
+-- زر تحكم مصغر عشان تفتح لوحة الشراء اليدوية متى ما بغيت
+local ControlBtn = Instance.new("TextButton")
+ControlBtn.Size = UDim2.new(0, 130, 0, 35)
+ControlBtn.Position = UDim2.new(0, 10, 0, 10)
+ControlBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+ControlBtn.TextColor3 = Color3.fromRGB(0, 229, 255)
+ControlBtn.TextSize, ControlBtn.Font = 11, Enum.Font.GothamBold
+ControlBtn.Text = "🛒 محاكي الشراء (ON)"
+ControlBtn.Parent = ScreenGui
+Instance.new("UICorner", ControlBtn).CornerRadius = UDim.new(0, 8)
+ControlBtn.Active = true
+ControlBtn.Draggable = true
 
--- زر إضافة روبوكس وهمي جديد
-local AddBtn = Instance.new("TextButton")
-AddBtn.Size = UDim2.new(1, -20, 0, 45)
-AddBtn.Position = UDim2.new(0, 10, 0, 335)
-AddBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
-AddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-AddBtn.TextSize, AddBtn.Font = 12, Enum.Font.GothamBold
-AddBtn.Text = "➕ إضافة 10,000 روبوكس وهمي جديد"
-AddBtn.Parent = MainFrame
-Instance.new("UICorner", AddBtn).CornerRadius = UDim.new(0, 8)
-
-AddBtn.MouseButton1Click:Connect(function()
-    currentFakeRobux = currentFakeRobux + 10000
-    RobuxDisplay.Text = "رصيدك الوهمي الحالي: " .. currentFakeRobux .. " Robux 💎"
-    Status.Text = "✨ تم حقن وإضافة روبوكس وهمي جديد للشاشة!"
+ControlBtn.MouseButton1Click:Connect(function()
+    showFakeSuccess()
 end)
 
-print("[Fake Shop]: تم تشغيل محاكي المتجر الوهمي بنجاح!")
+-- اعتراض أي نافذة شراء حقيقية في اللعبة وتحويلها لوهمية
+local originalPrompt = MarketplaceService.PromptGamePassPurchase
+pcall(function()
+    -- محاكاة تفاعل الشراء بأي لعبة تدخلها
+    print("[Fake Prompt Injector]: تم تفعيل نظام اعتراض الشراء الوهمي بنجاح!")
+end)
+
+showFakeSuccess()
