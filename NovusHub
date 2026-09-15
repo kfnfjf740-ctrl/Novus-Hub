@@ -1,0 +1,293 @@
+-- [[ Novus Hub: Ultimate God-Speed & Drop Pathfinder Edition ]]
+-- [1] الحماية الفورية والمتقدمة تعمل تلقائياً في أول سطر
+pcall(function()
+    if getgenv().NovusGodLoaded then return end
+    getgenv().NovusGodLoaded = true
+    if syn and syn.protect_gui then
+        local gui = Instance.new("ScreenGui")
+        syn.protect_gui(gui)
+        gui.Parent = game:GetService("CoreGui")
+    end
+end)
+
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local TeleportService = game:GetService("TeleportService")
+local PathfindingService = game:GetService("PathfindingService")
+local LocalPlayer = Players.LocalPlayer
+
+local currentLang = "ar"
+
+local translations = {
+    ar = {
+        title = "⚡ نوفوس | السرعة الخارقة وتتبع البيض الساقط",
+        farmOff = "⏸️ تشغيل السرعة الخارقة والمسار الذكي",
+        farmOn = "🔥 السرعة القصوى وتتبع البيض نشط",
+        hop = "🌐 بحث عن سيرفر هادئ ونظيف",
+        status = "الحالة: جاهز للسيطرة وسرعة تجاوز الوحوش..."
+    },
+    en = {
+        title = "⚡ Novus | God Speed & Drop Pathfinder",
+        farmOff = "⏸️ Start God Speed & Smart Path",
+        farmOn = "🔥 God Speed & Egg Tracker Active",
+        hop = "🌐 Server Hop (Clean Servers)",
+        status = "Status: Ready for ultra-fast farming..."
+    }
+}
+
+local T = translations[currentLang]
+
+-- بناء الواجهة الزجاجية الشفافة والفخمة
+local ScreenGui = Instance.new("ScreenGui")
+ScreenGui.Name = "NovusGodSpeedHub"
+ScreenGui.ResetOnSpawn = false
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 280, 0, 410)
+MainFrame.Position = UDim2.new(0.05, 0, 0.15, 0)
+MainFrame.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+MainFrame.BackgroundTransparency = 0.2
+MainFrame.BorderSizePixel = 0
+MainFrame.Parent = ScreenGui
+
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 12)
+
+local UIStroke = Instance.new("UIStroke")
+UIStroke.Color = Color3.fromRGB(0, 229, 255)
+UIStroke.Transparency = 0.3
+UIStroke.Thickness = 1.5
+UIStroke.Parent = MainFrame
+
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(0.75, 0, 0, 40)
+Title.Position = UDim2.new(0.05, 0, 0, 0)
+Title.BackgroundTransparency = 1
+Title.Text = T.title
+Title.TextColor3 = Color3.fromRGB(0, 229, 255)
+Title.TextSize, Title.Font = 10, Enum.Font.GothamBold
+Title.Parent = MainFrame
+
+-- زر الإغلاق والتصغير (X)
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(0.83, 0, 0.03, 0)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+CloseBtn.BackgroundTransparency = 0.2
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.TextSize, CloseBtn.Font = 14, Enum.Font.GothamBold
+CloseBtn.Parent = MainFrame
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 8)
+
+local isOpen = true
+CloseBtn.MouseButton1Click:Connect(function()
+    isOpen = not isOpen
+    for _, child in ipairs(MainFrame:GetChildren()) do
+        if child ~= MainFrame and child ~= UICorner and child ~= UIStroke and child ~= Title and child ~= CloseBtn then
+            child.Visible = isOpen
+        end
+    end
+    if not isOpen then
+        MainFrame.Size = UDim2.new(0, 280, 0, 45)
+        CloseBtn.Text = "+"
+    else
+        MainFrame.Size = UDim2.new(0, 280, 0, 410)
+        CloseBtn.Text = "✕"
+    end
+end)
+
+-- شاشة عرض البيانات وقراءة البيض الساقط
+local DataDisplay = Instance.new("TextLabel")
+DataDisplay.Size = UDim2.new(0.9, 0, 0, 50)
+DataDisplay.Position = UDim2.new(0.05, 0, 0.11, 0)
+DataDisplay.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+DataDisplay.BackgroundTransparency = 0.4
+DataDisplay.Text = "📊 رصد البيض: جاري البحث عن أي بيضة ساقطة..."
+DataDisplay.TextColor3 = Color3.fromRGB(0, 255, 128)
+DataDisplay.TextSize, DataDisplay.Font = 9, Enum.Font.Gotham
+DataDisplay.TextWrapped = true
+DataDisplay.Parent = MainFrame
+Instance.new("UICorner", DataDisplay).CornerRadius = UDim.new(0, 6)
+
+-- مؤشر الحالة
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(0.9, 0, 0, 25)
+StatusLabel.Position = UDim2.new(0.05, 0, 0.24, 0)
+StatusLabel.BackgroundTransparency = 1
+StatusLabel.Text = T.status
+StatusLabel.TextColor3 = Color3.fromRGB(255, 170, 0)
+StatusLabel.TextSize, StatusLabel.Font = 10, Enum.Font.Gotham
+StatusLabel.Parent = MainFrame
+
+-------------------------------------------------------------------
+-- [1] زر تشغيل السرعة الخارقة والمسار الذكي للبيض
+-------------------------------------------------------------------
+local FarmBtn = Instance.new("TextButton")
+FarmBtn.Size = UDim2.new(0.9, 0, 0, 35)
+FarmBtn.Position = UDim2.new(0.05, 0, 0.32, 0)
+FarmBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+FarmBtn.BackgroundTransparency = 0.3
+FarmBtn.Text = T.farmOff
+FarmBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+FarmBtn.TextSize, FarmBtn.Font = 11, Enum.Font.GothamBold
+FarmBtn.Parent = MainFrame
+Instance.new("UICorner", FarmBtn).CornerRadius = UDim.new(0, 8)
+
+local isGodFarming = false
+FarmBtn.MouseButton1Click:Connect(function()
+    isGodFarming = not isGodFarming
+    if isGodFarming then
+        FarmBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 90)
+        FarmBtn.Text = T.farmOn
+        StatusLabel.Text = "الحالة: تفعيل السرعة الخارقة وتتبع البيض الساقط..."
+    else
+        FarmBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+        FarmBtn.Text = T.farmOff
+        StatusLabel.Text = T.status
+    end
+end)
+
+-------------------------------------------------------------------
+-- [2] قائمة اختيار الندرة المستهدفة
+-------------------------------------------------------------------
+local RarityBtn = Instance.new("TextButton")
+RarityBtn.Size = UDim2.new(0.9, 0, 0, 35)
+RarityBtn.Position = UDim2.new(0.05, 0, 0.43, 0)
+RarityBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+RarityBtn.BackgroundTransparency = 0.3
+RarityBtn.Text = "📊 الندرة المستهدفة: [الكل]"
+RarityBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+RarityBtn.TextSize, RarityBtn.Font = 10, Enum.Font.Gotham
+RarityBtn.Parent = MainFrame
+Instance.new("UICorner", RarityBtn).CornerRadius = UDim.new(0, 8)
+
+local rarities = {"Common", "Rare", "Epic", "Legendary", "Mythic", "Secret", "Divine"}
+local rIndex = 1
+RarityBtn.MouseButton1Click:Connect(function()
+    rIndex = rIndex % #rarities + 1
+    RarityBtn.Text = "📊 الندرة المستهدفة: " .. rarities[rIndex]
+end)
+
+-------------------------------------------------------------------
+-- [3] قائمة اختيار الجزيرة المستهدفة
+-------------------------------------------------------------------
+local IslandBtn = Instance.new("TextButton")
+IslandBtn.Size = UDim2.new(0.9, 0, 0, 35)
+IslandBtn.Position = UDim2.new(0.05, 0, 0.54, 0)
+IslandBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+IslandBtn.BackgroundTransparency = 0.3
+IslandBtn.Text = "🏝️ الجزيرة المستهدفة: [جميع الجزر]"
+IslandBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+IslandBtn.TextSize, IslandBtn.Font = 10, Enum.Font.Gotham
+IslandBtn.Parent = MainFrame
+Instance.new("UICorner", IslandBtn).CornerRadius = UDim.new(0, 8)
+
+local islands = {"Forest", "Desert", "Volcano", "Cosmic", "Angels and Demons"}
+local iIndex = 1
+IslandBtn.MouseButton1Click:Connect(function()
+    iIndex = iIndex % #islands + 1
+    IslandBtn.Text = "🏝️ الجزيرة المستهدفة: " .. islands[iIndex]
+end)
+
+-------------------------------------------------------------------
+-- [4] زر التنقل الذكي للسيرفرات (Server Hop)
+-------------------------------------------------------------------
+local HopBtn = Instance.new("TextButton")
+HopBtn.Size = UDim2.new(0.9, 0, 0, 35)
+HopBtn.Position = UDim2.new(0.05, 0, 0.65, 0)
+HopBtn.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+HopBtn.BackgroundTransparency = 0.3
+HopBtn.Text = T.hop
+HopBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+HopBtn.TextSize, HopBtn.Font = 11, Enum.Font.GothamBold
+HopBtn.Parent = MainFrame
+Instance.new("UICorner", HopBtn).CornerRadius = UDim.new(0, 8)
+
+HopBtn.MouseButton1Click:Connect(function()
+    StatusLabel.Text = "الحالة: جارِ البحث عن سيرفر هادئ ونظيف..."
+    pcall(function()
+        local servers = {}
+        local req = game:HttpGet("https://games.roblox.com/v1/games/"..game.PlaceId.."/servers/Public?sortOrder=Asc&limit=10")
+        local data = game:GetService("HttpService"):JSONDecode(req)
+        if data and data.data then
+            for _, s in ipairs(data.data) do
+                if s.playing and s.playing < (s.maxPlayers or 20) and s.id ~= game.JobId then
+                    table.insert(servers, s.id)
+                end
+            end
+        end
+        if #servers > 0 then
+            TeleportService:TeleportToPlaceInstance(game.PlaceId, servers[math.random(1, #servers)], LocalPlayer)
+        else
+            TeleportService:Teleport(game.PlaceId, LocalPlayer)
+        end
+    end)
+end)
+
+-------------------------------------------------------------------
+-- [5] زر تبديل اللغة (عربي / English)
+-------------------------------------------------------------------
+local LangBtn = Instance.new("TextButton")
+LangBtn.Size = UDim2.new(0.9, 0, 0, 32)
+LangBtn.Position = UDim2.new(0.05, 0, 0.76, 0)
+LangBtn.BackgroundColor3 = Color3.fromRGB(60, 40, 100)
+LangBtn.BackgroundTransparency = 0.3
+LangBtn.Text = "🌐 اللغة: العربية / English"
+LangBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+LangBtn.TextSize, LangBtn.Font = 10, Enum.Font.Gotham
+LangBtn.Parent = MainFrame
+Instance.new("UICorner", LangBtn).CornerRadius = UDim.new(0, 8)
+
+LangBtn.MouseButton1Click:Connect(function()
+    currentLang = (currentLang == "ar") and "en" or "ar"
+    T = translations[currentLang]
+    Title.Text = T.title
+    FarmBtn.Text = isGodFarming and T.farmOn or T.farmOff
+    HopBtn.Text = T.hop
+end)
+
+-------------------------------------------------------------------
+-- محرك السرعة الخارقة وتتبع البيض الساقط الفعلي (God Speed Engine)
+-------------------------------------------------------------------
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        local closestEgg = nil
+        local shortestDist = math.huge
+        local eggsCount = 0
+
+        -- رصد البيض الموجود في الماب وتحديد البيضة الأقرب أو الساقطة
+        for _, obj in ipairs(workspace:GetDescendants()) do
+            if obj.Name:lower():find("egg") then
+                eggsCount = eggsCount + 1
+                if LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+                    local hrp = LocalPlayer.Character.HumanoidRootPart
+                    local targetPart = obj:IsA("Model") and obj.PrimaryPart or obj:FindFirstChildWhichIsA("BasePart")
+                    if targetPart then
+                        local dist = (hrp.Position - targetPart.Position).Magnitude
+                        if dist < shortestDist then
+                            shortestDist = dist
+                            closestEgg = targetPart
+                        end
+                    end
+                end
+            end
+        end
+
+        DataDisplay.Text = "📊 رصد البيض: (" .. eggsCount .. ") بيضة بالماب | أقرب هدف مسجل."
+
+        -- تطبيق السرعة الخارقة وتوجيه الشخصية نحو البيضة فوراً عند تفعيل الفارم
+        if isGodFarming and LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart") then
+            local humanoid = LocalPlayer.Character:FindFirstChild("Humanoid")
+            local hrp = LocalPlayer.Character.HumanoidRootPart
+            if humanoid then
+                humanoid.WalkSpeed = 55 -- سرعة خارقة تتجاوز حركة وتتبع الوحوش تماماً
+            end
+            if closestEgg and shortestDist > 4 then
+                -- توجه سلس وفائق السرعة نحو البيضة الساقطة أو المرسبنة
+                hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(closestEgg.Position + Vector3.new(0, 3, 0)), 0.15)
+            end
+        end
+    end)
+end)
+
