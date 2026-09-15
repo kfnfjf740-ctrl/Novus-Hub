@@ -1,22 +1,23 @@
 -- ==========================================
--- NOVUS HUB: CUSTOM VISUAL ROBUX & SHOP GENERATOR
+-- NOVUS HUB: CUSTOM VISUAL ROBUX & SHOP GENERATOR-- ==========================================
+-- NOVUS HUB: FULL FAKE SHOP & ROBUX SIMULATOR
 -- ==========================================
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
-if LocalPlayer.PlayerGui:FindFirstChild("VisualRobuxGui") then
-    LocalPlayer.PlayerGui.VisualRobuxGui:Destroy()
+if LocalPlayer.PlayerGui:FindFirstChild("FakeShopSimulator") then
+    LocalPlayer.PlayerGui.FakeShopSimulator:Destroy()
 end
 
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "VisualRobuxGui"
+ScreenGui.Name = "FakeShopSimulator"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
 local MainFrame = Instance.new("Frame")
-MainFrame.Size = UDim2.new(0, 340, 0, 280)
-MainFrame.Position = UDim2.new(0.5, -170, 0.5, -140)
-MainFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
+MainFrame.Size = UDim2.new(0, 360, 0, 400)
+MainFrame.Position = UDim2.new(0.5, -180, 0.5, -200)
+MainFrame.BackgroundColor3 = Color3.fromRGB(18, 18, 28)
 MainFrame.BorderSizePixel = 0
 MainFrame.Active = true
 MainFrame.Draggable = true
@@ -24,20 +25,20 @@ MainFrame.Parent = ScreenGui
 
 Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
--- العنوان
+-- شريط العنوان
 local Title = Instance.new("TextLabel")
-Title.Size = UDim2.new(1, 0, 0, 40)
-Title.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-Title.Text = "💎 مولد الروبوكس الوهمي (Visual Custom)"
+Title.Size = UDim2.new(1, 0, 0, 45)
+Title.BackgroundColor3 = Color3.fromRGB(28, 28, 42)
+Title.Text = "💎 محاكي الشراء الوهمي والروبوكس"
 Title.TextColor3 = Color3.fromRGB(0, 229, 255)
-Title.TextSize, Title.Font = 12, Enum.Font.GothamBold
+Title.TextSize, Title.Font = 13, Enum.Font.GothamBold
 Title.Parent = MainFrame
 Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
 
 -- زر الإغلاق
 local CloseBtn = Instance.new("TextButton")
 CloseBtn.Size = UDim2.new(0, 30, 0, 30)
-CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.Position = UDim2.new(1, -35, 0, 7)
 CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
 CloseBtn.Text = "✕"
 CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
@@ -47,62 +48,75 @@ CloseBtn.MouseButton1Click:Connect(function()
     ScreenGui:Destroy()
 end)
 
--- صندوق الكتابة لإدخال عدد الروبوكس
-local TextBox = Instance.new("TextBox")
-TextBox.Size = UDim2.new(1, -30, 0, 45)
-TextBox.Position = UDim2.new(0, 15, 0, 60)
-TextBox.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
-TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-TextBox.PlaceholderText = "اكتب عدد الروبوكس هنا (مثلاً: 10000)..."
-TextBox.Text = ""
-TextBox.TextSize, TextBox.Font = 12, Enum.Font.GothamMedium
-TextBox.Parent = MainFrame
-Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0, 8)
-
--- شاشة عرض الرصيد الوهمي فوق بالشاشة
+-- شريط عرض الرصيد الوهمي في الأعلى
 local RobuxDisplay = Instance.new("TextLabel")
-RobuxDisplay.Size = UDim2.new(1, -30, 0, 35)
-RobuxDisplay.Position = UDim2.new(0, 15, 0, 120)
+RobuxDisplay.Size = UDim2.new(1, -20, 0, 40)
+RobuxDisplay.Position = UDim2.new(0, 10, 0, 55)
 RobuxDisplay.BackgroundColor3 = Color3.fromRGB(25, 35, 30)
 RobuxDisplay.TextColor3 = Color3.fromRGB(0, 255, 120)
 RobuxDisplay.TextSize, RobuxDisplay.Font = 12, Enum.Font.GothamBold
-RobuxDisplay.Text = "رصيدك الحالي الوهمي: 0 Robux"
+RobuxDisplay.Text = "رصيدك الوهمي الحالي: 50,000 Robux 💎"
 RobuxDisplay.Parent = MainFrame
 Instance.new("UICorner", RobuxDisplay).CornerRadius = UDim.new(0, 6)
 
--- زر تفعيل الرصيد والشراء
-local BuyBtn = Instance.new("TextButton")
-BuyBtn.Size = UDim2.new(1, -30, 0, 45)
-BuyBtn.Position = UDim2.new(0, 15, 0, 175)
-BuyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
-BuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-BuyBtn.TextSize, BuyBtn.Font = 13, Enum.Font.GothamBold
-BuyBtn.Text = "تأكيد وإضافة الروبوكس للشاشة 🚀"
-BuyBtn.Parent = MainFrame
-Instance.new("UICorner", BuyBtn).CornerRadius = UDim.new(0, 8)
+-- شريط الحالة والإشعارات الوهمية
+local Status = Instance.new("TextLabel")
+Status.Size = UDim2.new(1, -20, 0, 35)
+Status.Position = UDim2.new(0, 10, 0, 105)
+Status.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+Status.TextColor3 = Color3.fromRGB(255, 215, 0)
+Status.TextSize, Status.Font = 11, Enum.Font.GothamMedium
+Status.Text = "الحالة: جاهز للشراء الوهمي، اختر عنصراً..."
+Status.Parent = MainFrame
+Instance.new("UICorner", Status).CornerRadius = UDim.new(0, 6)
 
--- حالة العملية
-local StatusLabel = Instance.new("TextLabel")
-StatusLabel.Size = UDim2.new(1, -30, 0, 30)
-StatusLabel.Position = UDim2.new(0, 15, 0, 230)
-StatusLabel.BackgroundTransparency = 1
-StatusLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-StatusLabel.TextSize, StatusLabel.Font = 11, Enum.Font.Gotham
-StatusLabel.Text = "الحالة: جاهز، اكتب العدد واضغط تأكيد."
-StatusLabel.Parent = MainFrame
+-- دالة لعناصر المتجر الوهمي التي تختبر "الشراء"
+local currentFakeRobux = 50000
+local function createFakeBuyItem(posY, itemName, price)
+    local btn = Instance.new("TextButton")
+    btn.Size = UDim2.new(1, -20, 0, 50)
+    btn.Position = UDim2.new(0, 10, 0, posY)
+    btn.BackgroundColor3 = Color3.fromRGB(32, 32, 48)
+    btn.TextColor3 = Color3.fromRGB(255, 255, 255)
+    btn.TextSize, btn.Font = 12, Enum.Font.GothamBold
+    btn.Text = itemName .. " | السعر: " .. price .. " R$"
+    btn.Parent = MainFrame
+    Instance.new("UICorner", btn).CornerRadius = UDim.new(0, 8)
+    
+    btn.MouseButton1Click:Connect(function()
+        if currentFakeRobux >= price then
+            currentFakeRobux = currentFakeRobux - price
+            RobuxDisplay.Text = "رصيدك الوهمي الحالي: " .. currentFakeRobux .. " Robux 💎"
+            Status.Text = "🎉 تم شراء (" .. itemName .. ") وهمياً بنجاح!"
+            task.wait(1.5)
+            Status.Text = "الحالة: جاهز لعملية شراء وهمية أخرى..."
+        else
+            Status.Text = "❌ رصيدك الوهمي لا يكفي، أعد تعبئته!"
+        end
+    end)
+    return btn
+end
 
--- تفعيل الزر
-BuyBtn.MouseButton1Click:Connect(function()
-    local amount = TextBox.Text
-    if amount == "" then
-        amount = "99999"
-    end
-    
-    RobuxDisplay.Text = "رصيدك الحالي الوهمي: " .. amount .. " Robux 💎"
-    StatusLabel.Text = "✅ تم تفعيل الرصيد والشراء الوهمي بنجاح!"
-    
-    task.wait(2)
-    StatusLabel.Text = "الحالة: يمكنك الآن استعراض العناصر!"
+-- عناصر متجر وهمية للتجربة الشكلية
+createFakeBuyItem(150, "🐉 تفعيل تنين بيرمننت نادر", 1200)
+createFakeBuyItem(210, "⚡ حزمة السرعة الخارقة الدائمة", 800)
+createFakeBuyItem(270, "📦 فتح جميع صناديق الأندكس", 2500)
+
+-- زر إضافة روبوكس وهمي جديد
+local AddBtn = Instance.new("TextButton")
+AddBtn.Size = UDim2.new(1, -20, 0, 45)
+AddBtn.Position = UDim2.new(0, 10, 0, 335)
+AddBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
+AddBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+AddBtn.TextSize, AddBtn.Font = 12, Enum.Font.GothamBold
+AddBtn.Text = "➕ إضافة 10,000 روبوكس وهمي جديد"
+AddBtn.Parent = MainFrame
+Instance.new("UICorner", AddBtn).CornerRadius = UDim.new(0, 8)
+
+AddBtn.MouseButton1Click:Connect(function()
+    currentFakeRobux = currentFakeRobux + 10000
+    RobuxDisplay.Text = "رصيدك الوهمي الحالي: " .. currentFakeRobux .. " Robux 💎"
+    Status.Text = "✨ تم حقن وإضافة روبوكس وهمي جديد للشاشة!"
 end)
 
-print("[Visual Robux]: تم تشغيل مولد الروبوكس الشكلي بنجاح!")
+print("[Fake Shop]: تم تشغيل محاكي المتجر الوهمي بنجاح!")
