@@ -1,79 +1,93 @@
 -- ==========================================
--- NOVUS HUB: GLOBAL FAKE PURCHASE INJECTOR
+-- FAKE IN-GAME ROBUX PURCHASE GUI (LUA)
 -- ==========================================
 local Players = game:GetService("Players")
-local MarketplaceService = game:GetService("MarketplaceService")
-local CoreGui = game:GetService("CoreGui")
 local LocalPlayer = Players.LocalPlayer
 
--- إزالة أي واجهة سابقة
-if CoreGui:FindFirstChild("FakePromptGui") then
-    CoreGui.FakePromptGui:Destroy()
+if LocalPlayer.PlayerGui:FindFirstChild("CustomRobuxShopGui") then
+    LocalPlayer.PlayerGui.CustomRobuxShopGui:Destroy()
 end
 
--- واجهة الإشعارات الوهمية العائمة
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "FakePromptGui"
+ScreenGui.Name = "CustomRobuxShopGui"
 ScreenGui.ResetOnSpawn = false
-ScreenGui.Parent = CoreGui
+ScreenGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
 
-local Notification = Instance.new("Frame")
-Notification.Size = UDim2.new(0, 320, 0, 70)
-Notification.Position = UDim2.new(0.5, -160, 0, -90) -- تبدأ مخفية فوق
-Notification.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-Notification.BorderSizePixel = 0
-Notification.Parent = ScreenGui
+local MainFrame = Instance.new("Frame")
+MainFrame.Size = UDim2.new(0, 320, 0, 300)
+MainFrame.Position = UDim2.new(0.5, -160, 0.5, -150)
+MainFrame.BackgroundColor3 = Color3.fromRGB(25, 25, 35)
+MainFrame.BorderSizePixel = 0
+MainFrame.Active = true
+MainFrame.Draggable = true
+MainFrame.Parent = ScreenGui
 
-Instance.new("UICorner", Notification).CornerRadius = UDim.new(0, 10)
+Instance.new("UICorner", MainFrame).CornerRadius = UDim.new(0, 10)
 
--- خط زاهي على جنب
-local Accent = Instance.new("Frame")
-Accent.Size = UDim2.new(0, 5, 1, 0)
-Accent.BackgroundColor3 = Color3.fromRGB(0, 255, 120)
-Accent.BorderSizePixel = 0
-Accent.Parent = Notification
-Instance.new("UICorner", Accent).CornerRadius = UDim.new(0, 4)
+-- عنوان الواجهة
+local Title = Instance.new("TextLabel")
+Title.Size = UDim2.new(1, 0, 0, 40)
+Title.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+Title.Text = "⚡ متجر الشراء الوهمي (Custom Shop)"
+Title.TextColor3 = Color3.fromRGB(255, 215, 0)
+Title.TextSize, Title.Font = 12, Enum.Font.GothamBold
+Title.Parent = MainFrame
+Instance.new("UICorner", Title).CornerRadius = UDim.new(0, 10)
 
--- نص الرسالة الوهمية
-local MsgLabel = Instance.new("TextLabel")
-MsgLabel.Size = UDim2.new(1, -20, 1, 0)
-MsgLabel.Position = UDim2.new(0, 15, 0, 0)
-MsgLabel.BackgroundTransparency = 1
-MsgLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
-MsgLabel.TextSize, MsgLabel.Font = 12, Enum.Font.GothamBold
-MsgLabel.TextXAlignment = Enum.TextXAlignment.Left
-MsgLabel.Text = "💎 تم الشراء الوهمي بنجاح!\n(عملية شكلية عبر السكربت)"
-MsgLabel.Parent = Notification
-
--- دالة إظهار رسالة النجاح بشكل متحرك وجميل
-local function showFakeSuccess()
-    Notification:TweenPosition(UDim2.new(0.5, -160, 0, 20), "Out", "Quad", 0.3, true)
-    task.wait(2.5)
-    Notification:TweenPosition(UDim2.new(0.5, -160, 0, -90), "In", "Quad", 0.3, true)
-end
-
--- زر تحكم مصغر عشان تفتح لوحة الشراء اليدوية متى ما بغيت
-local ControlBtn = Instance.new("TextButton")
-ControlBtn.Size = UDim2.new(0, 130, 0, 35)
-ControlBtn.Position = UDim2.new(0, 10, 0, 10)
-ControlBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-ControlBtn.TextColor3 = Color3.fromRGB(0, 229, 255)
-ControlBtn.TextSize, ControlBtn.Font = 11, Enum.Font.GothamBold
-ControlBtn.Text = "🛒 محاكي الشراء (ON)"
-ControlBtn.Parent = ScreenGui
-Instance.new("UICorner", ControlBtn).CornerRadius = UDim.new(0, 8)
-ControlBtn.Active = true
-ControlBtn.Draggable = true
-
-ControlBtn.MouseButton1Click:Connect(function()
-    showFakeSuccess()
+-- زر الإغلاق
+local CloseBtn = Instance.new("TextButton")
+CloseBtn.Size = UDim2.new(0, 30, 0, 30)
+CloseBtn.Position = UDim2.new(1, -35, 0, 5)
+CloseBtn.BackgroundColor3 = Color3.fromRGB(200, 40, 40)
+CloseBtn.Text = "✕"
+CloseBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+CloseBtn.Parent = Title
+Instance.new("UICorner", CloseBtn).CornerRadius = UDim.new(0, 6)
+CloseBtn.MouseButton1Click:Connect(function()
+    ScreenGui:Destroy()
 end)
 
--- اعتراض أي نافذة شراء حقيقية في اللعبة وتحويلها لوهمية
-local originalPrompt = MarketplaceService.PromptGamePassPurchase
-pcall(function()
-    -- محاكاة تفاعل الشراء بأي لعبة تدخلها
-    print("[Fake Prompt Injector]: تم تفعيل نظام اعتراض الشراء الوهمي بنجاح!")
+-- صندوق إدخال الكمية
+local TextBox = Instance.new("TextBox")
+TextBox.Size = UDim2.new(1, -30, 0, 45)
+TextBox.Position = UDim2.new(0, 15, 0, 60)
+TextBox.BackgroundColor3 = Color3.fromRGB(35, 35, 50)
+TextBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+TextBox.PlaceholderText = "اكتب عدد الروبوكس هنا..."
+TextBox.Text = "10000"
+TextBox.TextSize, TextBox.Font = 12, Enum.Font.GothamMedium
+TextBox.Parent = MainFrame
+Instance.new("UICorner", TextBox).CornerRadius = UDim.new(0, 8)
+
+-- زر الشراء
+local BuyBtn = Instance.new("TextButton")
+BuyBtn.Size = UDim2.new(1, -30, 0, 45)
+BuyBtn.Position = UDim2.new(0, 15, 0, 120)
+BuyBtn.BackgroundColor3 = Color3.fromRGB(0, 170, 85)
+BuyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+BuyBtn.TextSize, BuyBtn.Font = 13, Enum.Font.GothamBold
+BuyBtn.Text = "شراء الآن (Fake Buy) 🛒"
+BuyBtn.Parent = MainFrame
+Instance.new("UICorner", BuyBtn).CornerRadius = UDim.new(0, 8)
+
+-- خانة الحالة
+local StatusLabel = Instance.new("TextLabel")
+StatusLabel.Size = UDim2.new(1, -30, 0, 60)
+StatusLabel.Position = UDim2.new(0, 15, 0, 185)
+StatusLabel.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
+StatusLabel.TextColor3 = Color3.fromRGB(0, 255, 120)
+StatusLabel.TextSize, StatusLabel.Font = 11, Enum.Font.GothamMedium
+StatusLabel.Text = "الحالة: جاهز لاختيار الروبوكس وتأكيد الشراء..."
+StatusLabel.TextWrapped = true
+StatusLabel.Parent = MainFrame
+Instance.new("UICorner", StatusLabel).CornerRadius = UDim.new(0, 8)
+
+-- تفعيل وظيفة الشراء الوهمي
+BuyBtn.MouseButton1Click:Connect(function()
+    local val = TextBox.Text
+    StatusLabel.Text = "⏳ جاري إرسال طلب الشراء بقيمة " .. val .. "...\n✅ تم بنجاح! تم إضافة العناصر والتحقق!"
+    task.wait(2)
+    StatusLabel.Text = "الحالة: جاهز لعملية شراء أخرى (وهمية داخل اللعبة)!"
 end)
 
-showFakeSuccess()
+print("[Custom Shop]: تم تحميل السكربت بنجاح!")
